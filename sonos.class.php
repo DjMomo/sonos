@@ -34,11 +34,13 @@ class SonosPHPController
 	/**
     * Constructeur
     * @param string Sonos IP adress
+	* @param string Sonos port (optional)
     */
-	public function __construct($Sonos_IP)
+	public function __construct($Sonos_IP,$Sonos_port = '1400')
 	{
 		// On assigne les paramètres aux variables d'instance.
 		$this->IP = $Sonos_IP;
+		$this->PORT = $Sonos_Port;
 	}
   
 	private function Upnp($url,$SOAP_service,$SOAP_action,$SOAP_arguments = '',$XML_filter = '')
@@ -51,7 +53,7 @@ class SonosPHPController
 		$POST_xml .= '</s:Body>';
 		$POST_xml .= '</s:Envelope>';
 		
-		$POST_url = $this->IP.":1400".$url;
+		$POST_url = $this->IP.":"$this->PORT.$url;
 		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -381,21 +383,26 @@ class SonosPHPController
  
 		// Name of the MP3 file generated using the MD5 hash
 		$file = md5($words);
-  
+echo "<br>Nom du fichier : $file"; 
 		// If folder doesn't exists, create it
 		if (!file_exists($folder))
 			mkdir($folder, 0755, true);
   
 		// Save the MP3 file in this folder with the .mp3 extension
 		$file = $folder."/TTS-".$file.".mp3";
- 
+echo "<br>Chemin complet du fichier : $file";  
 		// If the MP3 file exists, do not create a new request
 		if (!file_exists($file)) 
 		{
+			echo "<br>Le fichier n'existe pas -> création";  
 			ini_set('user_agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
 			$mp3 = file_get_contents('http://translate.google.com/translate_tts?q='.$words.'&tl='.$lang);
 			file_put_contents($file, $mp3);
+			echo "<br>Fichier MP3 : $mp3";
+			echo "<br>Contenu du fichier $file : ".file_get_contents($file);  
 		}
+		else
+			echo "<br>Aucun fichier créé car déjà existant";
 		return $file;
 	}
 	
