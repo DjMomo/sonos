@@ -407,6 +407,8 @@ class SonosPHPController
 	*/
 	public function PlayTTS($message,$directory,$volume=0,$unmute=0,$lang='fr')
 	{
+		ini_set('user_agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
+		
 		$actual['track'] = $this->GetPositionInfo();
 		$actual['volume'] = $this->GetVolume();      
 		$actual['mute'] = $this->GetMute();       
@@ -427,10 +429,7 @@ class SonosPHPController
 			$this->ChangeTrack($TrackNumber);
 			$this->Play();
 			sleep(2);
-			while ($this->GetTransportInfo() == "PLAYING")
-			{
-				echo "Playing MP3<br />";
-			}
+			while ($this->GetTransportInfo() == "PLAYING") {}
 			$this->Pause();
 			$this->SetVolume($actual['volume']);
 			$this->SetMute($actual['mute']);
@@ -440,14 +439,11 @@ class SonosPHPController
 		}
 		else
 		{
-			//It's a radio / or TV (playbar)
+			//It's a radio / or TV (playbar) / or nothing
 			$this->SetQueue($file);
 			$this->Play();
 			sleep(2);
-			while ($this->GetTransportInfo() == "PLAYING")
-			{
-				echo "Playing radio<br />";
-			}
+			while ($this->GetTransportInfo() == "PLAYING") {}
 			$this->Pause();
 			$this->SetVolume($actual['volume']);
 			$this->SetMute($actual['mute']);
