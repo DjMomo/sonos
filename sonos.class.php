@@ -53,7 +53,7 @@ class SonosPHPController
 		$POST_xml .= '</s:Body>';
 		$POST_xml .= '</s:Envelope>';
 		
-		$POST_url = $this->IP.":"$this->PORT.$url;
+		$POST_url = $this->IP.":".$this->PORT.$url;
 		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -390,7 +390,7 @@ class SonosPHPController
   
 		// Save the MP3 file in this folder with the .mp3 extension
 		$file = $folder."/TTS-".$file.".mp3";
-
+//echo "$file";
 		// If the MP3 file exists, do not create a new request
 		if (!file_exists($file)) 
 		{
@@ -421,8 +421,14 @@ class SonosPHPController
 		if ($volume != 0)
 			$this->SetVolume($volume);
 
-		$file = 'x-file-cifs://'.$directory.'/'.$this->TTSToMp3($message,$lang);
-
+		$directory = dirname($_SERVER["PHP_SELF"]);
+		$server = $_SERVER["SERVER_ADDR"];
+		
+			$file = 'x-file-cifs://'.$directory.'/'.$this->TTSToMp3($message,$lang);
+		//$file = 'x-rincon-mp3radio://'.$directory.'/'.$this->TTSToMp3($message,$lang);
+		//$file = 'x-rincon-mp3radio://'.$server.$directory.'/'.$this->TTSToMp3($message,$lang);
+		
+//echo "<br />-->$file";
 		if ((stripos($actual['track']["TrackURI"],"x-file-cifs://")) != false)
 		{
 			// It's a MP3 file
