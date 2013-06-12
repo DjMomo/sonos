@@ -392,6 +392,7 @@ class SonosPHPController
 		// If the MP3 file exists, do not create a new request
 		if (!file_exists($file)) 
 		{
+			ini_set('user_agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
 			$mp3 = file_get_contents('http://translate.google.com/translate_tts?q='.$words.'&tl='.$lang);
 			file_put_contents($file, $mp3);
 		}
@@ -407,8 +408,6 @@ class SonosPHPController
 	*/
 	public function PlayTTS($message,$directory,$volume=0,$unmute=0,$lang='fr')
 	{
-		ini_set('user_agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
-		
 		$actual['track'] = $this->GetPositionInfo();
 		$actual['volume'] = $this->GetVolume();      
 		$actual['mute'] = $this->GetMute();       
