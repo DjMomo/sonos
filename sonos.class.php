@@ -36,7 +36,7 @@ class SonosPHPController
     * @param string Sonos IP adress
 	* @param string Sonos port (optional)
     */
-	public function __construct($Sonos_IP,$Sonos_port = '1400')
+	public function __construct($Sonos_IP,$Sonos_Port = '1400')
 	{
 		// On assigne les paramètres aux variables d'instance.
 		$this->IP = $Sonos_IP;
@@ -52,7 +52,7 @@ class SonosPHPController
 		$POST_xml .= '</u:'.$SOAP_action.'>';
 		$POST_xml .= '</s:Body>';
 		$POST_xml .= '</s:Envelope>';
-		
+
 		$POST_url = $this->IP.":".$this->PORT.$url;
 		
 		$ch = curl_init();
@@ -67,7 +67,7 @@ class SonosPHPController
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $POST_xml);
         $r = curl_exec($ch);
 		curl_close($ch);
-		
+
 		if ($XML_filter != '')
 			return $this->Filter($r,$XML_filter);
 		else
@@ -364,6 +364,25 @@ class SonosPHPController
 		$service = 'urn:schemas-upnp-org:service:ContentDirectory:1';
 		return $this->Upnp($url,$service,$action,$args);
 	}
+
+	/**
+	* Split string in several strings
+	*
+	*/
+	private function CutString($string,$intmax)
+	{
+		$i = 0;
+		while (strlen($string) > $intmax)
+		{
+			$string_cut = substr($string, 0, $intmax);
+			$last_space = strrpos($string_cut, "+");
+			$strings[$i] = substr($string, 0, $last_space);
+			$string = substr($string, $last_space, strlen($string));
+			$i++;
+		}
+		$strings[$i] = $string;
+		return $strings;
+	}
 		
 	/**
 	* Convert Words (text) to Speech (MP3)
@@ -374,9 +393,6 @@ class SonosPHPController
 		// Directory
 		$folder = "audio/".$lang;
 		
-		// Google Translate API cannot handle strings > 100 characters
-		$words = substr($words, 0, 100);
- 
 		// Replace the non-alphanumeric characters
 		// The spaces in the sentence are replaced with the Plus symbol
 		$words = urlencode($words);
@@ -390,15 +406,45 @@ class SonosPHPController
   
 		// Save the MP3 file in this folder with the .mp3 extension
 		$file = $folder."/TTS-".$file.".mp3";
-//echo "$file";
+
 		// If the MP3 file exists, do not create a new request
 		if (!file_exists($file)) 
 		{
+			// Google Translate API cannot handle strings > 100 characters
+			$words = $this->CutString($words,100);
+		
 			ini_set('user_agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
-			$mp3 = file_get_contents('http://translate.google.com/translate_tts?q='.$words.'&tl='.$lang);
+			$mp3 = "";
+			for ($i = 0; $i < count($words); $i++)
+				$mp3[$i] = file_get_contents('http://translate.google.com/translate_tts?q='.$words[$i].'&tl='.$lang);
+			
 			file_put_contents($file, $mp3);
 		}
 		return $file;
+	}
+	
+	/**
+	* Say song name via TTS message
+	* @param string message
+	* @param string radio name display on sonos controller
+	* @param int volume
+	* @param string language
+	*/
+	public function SongNameTTS($directory,$volume=0,$unmute=0,$lang='fr')
+	{
+		$ThisSong = "Cette chanson s'appelle ";
+		$By = " de ";
+      
+		$actual['track'] = $this->GetPositionInfo();
+
+		$SongName = $actual['track']['Title'];
+		$Artist = $actual['track']['TitleArtist'];
+
+		$message = $ThisSong . $SongName . $By . $Artist ;
+      
+		$this->PlayTTS($message,$directory,$volume,$unmute,$lang);
+      
+		return true;
 	}
 	
 	/**
@@ -421,15 +467,8 @@ class SonosPHPController
 		if ($volume != 0)
 			$this->SetVolume($volume);
 
-		$directory = dirname($_SERVER["PHP_SELF"]);
-		$server = $_SERVER["SERVER_ADDR"];
-		
-			$file = 'x-file-cifs://'.$directory.'/'.$this->TTSToMp3($message,$lang);
-		//$file = 'x-rincon-mp3radio://'.$directory.'/'.$this->TTSToMp3($message,$lang);
-		//$file = 'x-rincon-mp3radio://'.$server.$directory.'/'.$this->TTSToMp3($message,$lang);
-		
-//echo "<br />-->$file";
-		if ((stripos($actual['track']["TrackURI"],"x-file-cifs://")) != false)
+		$file = 'x-file-cifs://'.$directory.'/'.$this->TTSToMp3($message,$lang);
+		if (((stripos($actual['track']["TrackURI"],"x-file-cifs://")) != false) or ((stripos($actual['track']["TrackURI"],".mp3")) != false))
 		{
 			// It's a MP3 file
 			$TrackNumber = $this->AddURIToQueue($file);
