@@ -2,7 +2,8 @@
 // Exemple de l'utilisation de la fonction Text-to-speech
 require("sonos.class.php");
 $IP_sonos_1 = "192.168.1.11"; // A adapter avec l'adresse IP du Sonos à contrôler
- 
+$directory = "www/sonos";		// Indiquer ici le dossier partagé contenant les scrips PHP sonos (et qui contiendra le sous-dossier audio)
+
 $volume = 0;
 $force_unmute = 0;
  
