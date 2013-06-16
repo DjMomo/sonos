@@ -7,7 +7,7 @@ https://github.com/DjMomo/sonos
 
 ==========
 
-2013-06-08 - V1.0 - Initial version on Github\n
+2013-06-08 - V1.0 - Initial version on Github
 2013-06-16 - Bugs fixes and new features :
 	- Say name song	
 	- TTS messages can be greater than 100 car.
