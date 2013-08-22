@@ -2,12 +2,12 @@
 /**
   * PHP class to control Sonos
   * http://www.github.com/DjMomo/sonos for updates
-  * 
+  *
   * Available functions :
-  * - Play() : play / lecture 
+  * - Play() : play / lecture
   * - Pause() : pause
   * - Stop() : stop
-  * - Next() : next track / titre suivant 
+  * - Next() : next track / titre suivant
   * - Previous() : previous track / titre précédent
   * - SeekTime(string) : seek to time xx:xx:xx / avancer-reculer à la position xx:xx:xx
   * - ChangeTrack(int) : change to track xx / aller au titre xx
@@ -27,22 +27,23 @@
   * - SetQueue(string) : load a track or radio in player / charge un titre ou une radio dans le lecteur
   * - PlayTTS(string message,string station,int volume,string lang) : play a text-to-speech message / lit un message texte
 */
+
 class SonosPHPController
 {
 	private $Sonos_IP;
-	
+
 	/**
-    * Constructeur
-    * @param string Sonos IP adress
+	* Constructeur
+	* @param string Sonos IP adress
 	* @param string Sonos port (optional)
-    */
+	*/
 	public function __construct($Sonos_IP,$Sonos_Port = '1400')
 	{
 		// On assigne les paramètres aux variables d'instance.
 		$this->IP = $Sonos_IP;
 		$this->PORT = $Sonos_Port;
 	}
-  
+
 	private function Upnp($url,$SOAP_service,$SOAP_action,$SOAP_arguments = '',$XML_filter = '')
 	{
 		$POST_xml = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">';
@@ -54,18 +55,18 @@ class SonosPHPController
 		$POST_xml .= '</s:Envelope>';
 
 		$POST_url = $this->IP.":".$this->PORT.$url;
-		
+
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 		curl_setopt($ch, CURLOPT_URL, $POST_url);
-    	curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: text/xml", "SOAPAction: ".$SOAP_service."#".$SOAP_action));
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $POST_xml);
-        $r = curl_exec($ch);
+		$r = curl_exec($ch);
 		curl_close($ch);
 
 		if ($XML_filter != '')
@@ -73,82 +74,77 @@ class SonosPHPController
 		else
 			return $r;
 	}
-  
+
 	private function Filter($subject,$pattern)
 	{
 		preg_match('/\<'.$pattern.'\>(.+)\<\/'.$pattern.'\>/',$subject,$matches); ///'/\<'.$pattern.'\>(.+)\<\/'.$pattern.'\>/'
 		return $matches[1];
 	}
-  
+
 	/**
 	* Play
 	*/
 	public function Play()
 	{
-	
 		$url = '/MediaRenderer/AVTransport/Control';
 		$action = 'Play';
 		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
 		$args = '<InstanceID>0</InstanceID><Speed>1</Speed>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-	
+
 	/**
 	* Pause
 	*/
 	public function Pause()
 	{
-	
 		$url = '/MediaRenderer/AVTransport/Control';
 		$action = 'Pause';
 		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
 		$args = '<InstanceID>0</InstanceID>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-	
+
 	/**
 	* Stop
 	*/
 	public function Stop()
 	{
-	
 		$url = '/MediaRenderer/AVTransport/Control';
 		$action = 'Stop';
 		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
 		$args = '<InstanceID>0</InstanceID>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-	
+
 	/**
 	* Next
 	*/
 	public function Next()
 	{
-	
 		$url = '/MediaRenderer/AVTransport/Control';
 		$action = 'Next';
 		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
 		$args = '<InstanceID>0</InstanceID>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-	
+
 	/**
 	* Previous
 	*/
 	public function Previous()
 	{
-	
 		$url = '/MediaRenderer/AVTransport/Control';
 		$action = 'Previous';
 		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
 		$args = '<InstanceID>0</InstanceID>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-  
+
 	/**
 	* Seek to position xx:xx:xx or track number x
 	* @param string 'REL_TIME' for time position (xx:xx:xx) or 'TRACK_NR' for track in actual queue
-	* @param string 
+	* @param string
 	*/
 	public function Seek($type,$position)
 	{
@@ -158,7 +154,7 @@ class SonosPHPController
 		$args = '<InstanceID>0</InstanceID><Unit>'.$type.'</Unit><Target>'.$position.'</Target>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-	
+
 	/**
 	* Seek to time xx:xx:xx
 	*/
@@ -166,7 +162,7 @@ class SonosPHPController
 	{
 		return $this->Seek("REL_TIME",$time);
 	}
-	
+
 	/**
 	* Change to track number
 	*/
@@ -174,7 +170,7 @@ class SonosPHPController
 	{
 		return $this->Seek("TRACK_NR",$number);
 	}
-	
+
 	/**
 	* Restart actual track
 	*/
@@ -182,7 +178,7 @@ class SonosPHPController
 	{
 		return $this->Seek("REL_TIME","00:00:00");
 	}
-	 
+
 	/**
 	* Restart actual queue
 	*/
@@ -190,13 +186,12 @@ class SonosPHPController
 	{
 		return $this->Seek("TRACK_NR","1");
 	}
-		 
+
 	/**
 	* Get volume value (0-100)
 	*/
 	public function GetVolume()
 	{
-	
 		$url = '/MediaRenderer/RenderingControl/Control';
 		$action = 'GetVolume';
 		$service = 'urn:schemas-upnp-org:service:RenderingControl:1';
@@ -204,20 +199,19 @@ class SonosPHPController
 		$filter = 'CurrentVolume';
 		return $this->Upnp($url,$service,$action,$args,$filter);
 	}
-	
+
 	/**
 	* Set volume value (0-100)
 	*/
 	public function SetVolume($volume)
 	{
-	
 		$url = '/MediaRenderer/RenderingControl/Control';
 		$action = 'SetVolume';
 		$service = 'urn:schemas-upnp-org:service:RenderingControl:1';
 		$args = '<InstanceID>0</InstanceID><Channel>Master</Channel><DesiredVolume>'.$volume.'</DesiredVolume>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-	
+
 	/**
 	* Get mute status
 	*/
@@ -230,7 +224,7 @@ class SonosPHPController
 		$filter = 'CurrentMute';
 		return $this->Upnp($url,$service,$action,$args,$filter);
 	}
-	
+
 	/**
 	* Set mute
 	* @param integer mute active=1
@@ -243,7 +237,7 @@ class SonosPHPController
 		$args = '<InstanceID>0</InstanceID><Channel>Master</Channel><DesiredMute>'.$mute.'</DesiredMute>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-	
+
 	/**
 	* Get Transport Info : get status about player
 	*/
@@ -256,7 +250,7 @@ class SonosPHPController
 		$filter = 'CurrentTransportState';
 		return $this->Upnp($url,$service,$action,$args,$filter);
 	}
-	
+
 	/**
 	* Get Media Info : get informations about media
 	*/
@@ -269,7 +263,7 @@ class SonosPHPController
 		$filter = 'CurrentURI';
 		return $this->Upnp($url,$service,$action,$args,$filter);
 	}
-	
+
 	/**
 	* Get Position Info : get some informations about track
 	*/
@@ -280,29 +274,29 @@ class SonosPHPController
 		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
 		$args = '<InstanceID>0</InstanceID>';
 		$xml = $this->Upnp($url,$service,$action,$args);
-		
+
 		$data["TrackNumberInQueue"] = $this->Filter($xml,"Track");
 		$data["TrackURI"] = $this->Filter($xml,"TrackURI");
 		$data["TrackDuration"] = $this->Filter($xml,"TrackDuration");
 		$data["RelTime"] = $this->Filter($xml,"RelTime");
 		$TrackMetaData = $this->Filter($xml,"TrackMetaData");
-		
+
 		$xml = substr($xml, stripos($TrackMetaData, '&lt;'));
 		$xml = substr($xml, 0, strrpos($xml, '&gt;') + 4);
 		$xml = str_replace(array("&lt;", "&gt;", "&quot;", "&amp;", "%3a", "%2f", "%25"), array("<", ">", "\"", "&", ":", "/", "%"), $xml);
-		
+
 		$data["Title"] = $this->Filter($xml,"dc:title");	// Track Title
 		$data["AlbumArtist"] = $this->Filter($xml,"r:albumArtist");		// Album Artist
 		$data["Album"] = $this->Filter($xml,"upnp:album");		// Album Title
 		$data["TitleArtist"] = $this->Filter($xml,"dc:creator");	// Track Artist
-		
+
 		return $data;
 	}
-	
+
 	/**
 	* Add URI to Queue
 	* @param string track/radio URI
-	* @param bool added next (=1) or end queue (=0) 
+	* @param bool added next (=1) or end queue (=0)
 	*/
 	public function AddURIToQueue($URI,$next=0)
 	{
@@ -313,7 +307,7 @@ class SonosPHPController
 		$filter = 'FirstTrackNumberEnqueued';
 		return $this->Upnp($url,$service,$action,$args,$filter);
 	}
-	
+
 	/**
 	* Remove a track from Queue
 	*
@@ -326,7 +320,7 @@ class SonosPHPController
 		$args = '<InstanceID>0</InstanceID><ObjectID>Q:0/'.$tracknumber.'</ObjectID>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-	
+
 	/**
 	* Clear Queue
 	*
@@ -352,7 +346,7 @@ class SonosPHPController
 		$args = '<InstanceID>0</InstanceID><CurrentURI>'.$URI.'</CurrentURI><CurrentURIMetaData></CurrentURIMetaData>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
-		
+
 	/**
 	* Refresh music library
 	*
@@ -383,7 +377,7 @@ class SonosPHPController
 		$strings[$i] = $string;
 		return $strings;
 	}
-		
+
 	/**
 	* Convert Words (text) to Speech (MP3)
 	*
@@ -392,37 +386,37 @@ class SonosPHPController
 	{
 		// Directory
 		$folder = "audio/".$lang;
-		
+
 		// Replace the non-alphanumeric characters
 		// The spaces in the sentence are replaced with the Plus symbol
 		$words = urlencode($words);
- 
+
 		// Name of the MP3 file generated using the MD5 hash
 		$file = md5($words);
 
 		// If folder doesn't exists, create it
 		if (!file_exists($folder))
 			mkdir($folder, 0755, true);
-  
+
 		// Save the MP3 file in this folder with the .mp3 extension
 		$file = $folder."/TTS-".$file.".mp3";
 
 		// If the MP3 file exists, do not create a new request
-		if (!file_exists($file)) 
+		if (!file_exists($file))
 		{
 			// Google Translate API cannot handle strings > 100 characters
 			$words = $this->CutString($words,100);
-		
+
 			ini_set('user_agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
 			$mp3 = "";
 			for ($i = 0; $i < count($words); $i++)
 				$mp3[$i] = file_get_contents('http://translate.google.com/translate_tts?q='.$words[$i].'&tl='.$lang);
-			
+
 			file_put_contents($file, $mp3);
 		}
 		return $file;
 	}
-	
+
 	/**
 	* Say song name via TTS message
 	* @param string message
@@ -434,19 +428,19 @@ class SonosPHPController
 	{
 		$ThisSong = "Cette chanson s'appelle ";
 		$By = " de ";
-      
+
 		$actual['track'] = $this->GetPositionInfo();
 
 		$SongName = $actual['track']['Title'];
 		$Artist = $actual['track']['TitleArtist'];
 
 		$message = $ThisSong . $SongName . $By . $Artist ;
-      
+
 		$this->PlayTTS($message,$directory,$volume,$unmute,$lang);
-      
+
 		return true;
 	}
-	
+
 	/**
 	* Play a TTS message
 	* @param string message
@@ -457,11 +451,11 @@ class SonosPHPController
 	public function PlayTTS($message,$directory,$volume=0,$unmute=0,$lang='fr')
 	{
 		$actual['track'] = $this->GetPositionInfo();
-		$actual['volume'] = $this->GetVolume();      
-		$actual['mute'] = $this->GetMute();       
+		$actual['volume'] = $this->GetVolume();
+		$actual['mute'] = $this->GetMute();
 		$actual['status'] = $this->GetTransportInfo();
 		$this->Pause();
-			
+
 		if ($unmute == 1)
 			$this->SetMute(0);
 		if ($volume != 0)
@@ -501,8 +495,3 @@ class SonosPHPController
 		return true;
 	}
 }
-
-?>
-
-
-
