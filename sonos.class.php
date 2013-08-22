@@ -30,7 +30,7 @@
 
 class SonosPHPController
 {
-	private $Sonos_IP;
+	protected $Sonos_IP;
 
 	/**
 	* Constructeur
@@ -69,13 +69,15 @@ class SonosPHPController
 		$r = curl_exec($ch);
 		curl_close($ch);
 
+		echo $r."\n\n";
+
 		if ($XML_filter != '')
 			return $this->Filter($r,$XML_filter);
 		else
 			return $r;
 	}
 
-	private function Filter($subject,$pattern)
+	protected function Filter($subject,$pattern)
 	{
 		preg_match('/\<'.$pattern.'\>(.+)\<\/'.$pattern.'\>/',$subject,$matches); ///'/\<'.$pattern.'\>(.+)\<\/'.$pattern.'\>/'
 		return $matches[1];
@@ -364,7 +366,7 @@ class SonosPHPController
 	* Split string in several strings
 	*
 	*/
-	private function CutString($string,$intmax)
+	protected function CutString($string,$intmax)
 	{
 		$i = 0;
 		while (strlen($string) > $intmax)
@@ -383,7 +385,7 @@ class SonosPHPController
 	* Convert Words (text) to Speech (MP3)
 	*
 	*/
-	private function TTSToMp3($words,$lang)
+	protected function TTSToMp3($words,$lang)
 	{
 		// Directory
 		$folder = "audio/".$lang;
