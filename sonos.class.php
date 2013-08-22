@@ -44,7 +44,7 @@ class SonosPHPController
 		$this->PORT = $Sonos_Port;
 	}
 
-	private function Upnp($url,$SOAP_service,$SOAP_action,$SOAP_arguments = '',$XML_filter = '')
+	protected function Upnp($url,$SOAP_service,$SOAP_action,$SOAP_arguments = '',$XML_filter = '')
 	{
 		$POST_xml = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">';
 		$POST_xml .= '<s:Body>';
