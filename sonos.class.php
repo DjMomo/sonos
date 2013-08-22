@@ -303,7 +303,8 @@ class SonosPHPController
 		$url = '/MediaRenderer/AVTransport/Control';
 		$action = 'AddURIToQueue';
 		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
-		$args = '<InstanceID>0</InstanceID><EnqueuedURI>'.$URI.'</EnqueuedURI><EnqueuedURIMetaData></EnqueuedURIMetaData><DesiredFirstTrackNumberEnqueued>0</DesiredFirstTrackNumberEnqueued><EnqueueAsNext>1</EnqueueAsNext>';
+		$next = (int)$next;
+		$args = '<InstanceID>0</InstanceID><EnqueuedURI>'.$URI.'</EnqueuedURI><EnqueuedURIMetaData></EnqueuedURIMetaData><DesiredFirstTrackNumberEnqueued>0</DesiredFirstTrackNumberEnqueued><EnqueueAsNext>'.$next.'</EnqueueAsNext>';
 		$filter = 'FirstTrackNumberEnqueued';
 		return $this->Upnp($url,$service,$action,$args,$filter);
 	}
