@@ -69,8 +69,6 @@ class SonosPHPController
 		$r = curl_exec($ch);
 		curl_close($ch);
 
-		echo $r."\n\n";
-
 		if ($XML_filter != '')
 			return $this->Filter($r,$XML_filter);
 		else
