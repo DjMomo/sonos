@@ -1,7 +1,8 @@
 <?php
 /**
   * PHP class to control Sonos
-  * http://www.github.com/DjMomo/sonos for updates
+  * Forked from http://www.github.com/DjMomo/sonos
+  * Forked repo / updates from https://github.com/phil-lavin/sonos
   *
   * Available functions :
   * - Play() : play / lecture
@@ -26,11 +27,19 @@
   * - RefreshShareIndex() : refresh music library / rafraichit la bibliothèque musicale
   * - SetQueue(string) : load a track or radio in player / charge un titre ou une radio dans le lecteur
   * - PlayTTS(string message,string station,int volume,string lang) : play a text-to-speech message / lit un message texte
+  *
+  * Functions only available in the fork:
+  * - static get_room_coordinator(string room_name) : Returns an instance of SonosPHPController representing the 'coordinator' of the specified room
+  * - static detect(string ip,string port) : IP and port are optional. Returns an array of instances of SonosPHPController, one for each Sonos device found on the network
+  * - get_coordinator() : Returns an instance of SonosPHPController representing the 'coordinator' of the room this device is in
+  * - device_info() : Gets some info about this device as an array
+  * - AddSpotifyToQueue(string spotify_id,bool next) : Adds the provided spotify ID to the queue either next or at the end
 */
 
 class SonosPHPController
 {
 	protected $Sonos_IP;
+	protected $_raw = [];
 
 	/**
 	* Constructeur
@@ -494,5 +503,184 @@ class SonosPHPController
 		if (strcmp($actual['status'],"PLAYING") == 0)
 			$this->Play();
 		return true;
+	}
+
+	public function AddSpotifyToQueue($spotify_id, $next = false) {
+		$rand = mt_rand(10000000, 99999999);
+
+		$meta = '<DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
+				<item id="'.$rand.'spotify%3atrack%3a'.$spotify_id.'" restricted="true">
+					<dc:title></dc:title>
+					<upnp:class>object.item.audioItem.musicTrack</upnp:class>
+					<desc id="cdudn" nameSpace="urn:schemas-rinconnetworks-com:metadata-1-0/">SA_RINCON2311_X_#Svc2311-0-Token</desc>
+				</item>
+			</DIDL-Lite>';
+
+		$meta = htmlentities($meta);
+
+		$url = '/MediaRenderer/AVTransport/Control';
+		$action = 'AddURIToQueue';
+		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
+		$next = (int)$next;
+
+		$args = "
+			<InstanceID>0</InstanceID>
+			<EnqueuedURI>x-sonos-spotify:spotify%3atrack%3a{$spotify_id}</EnqueuedURI>
+			<EnqueuedURIMetaData>{$meta}</EnqueuedURIMetaData>
+			<DesiredFirstTrackNumberEnqueued>0</DesiredFirstTrackNumberEnqueued>
+			<EnqueueAsNext>{$next}</EnqueueAsNext>
+		";
+
+		$filter = 'FirstTrackNumberEnqueued';
+
+		return $this->Upnp($url, $service, $action, $args, $filter);
+	}
+
+	public function device_info() {
+		$xml = $this->_device_info_raw('/xml/device_description.xml');
+
+		$out = [
+			'friendlyName' => (string)$xml->device->friendlyName,
+			'modelNumber' => (string)$xml->device->modelNumber,
+			'modelName' => (string)$xml->device->modelName,
+			'softwareVersion' => (string)$xml->device->softwareVersion,
+			'hardwareVersion' => (string)$xml->device->hardwareVersion,
+			'roomName' => (string)$xml->device->roomName,
+		];
+
+		return $out;
+	}
+
+	public function get_coordinator() {
+		$topology = $this->_device_info_raw('/status/topology');
+
+		$myself = null;
+		$coordinators = [];
+
+		// Loop players, build map of coordinators and find myself
+		foreach ($topology->ZonePlayers->ZonePlayer as $player) {
+			$player_data = $player->attributes();
+
+			$ip = parse_url((string)$player_data->location)['host'];
+
+			if ($ip == $this->IP) {
+				$myself = $player_data;
+			}
+
+			if ((string)$player_data->coordinator == 'true') {
+				$coordinators[(string)$player_data->group] = $ip;
+			}
+		}
+
+		$coordinator = $coordinators[(string)$myself->group];
+
+		return new static($coordinator);
+	}
+
+	protected function _device_info_raw($url) {
+		$url = "http://{$this->IP}:{$this->PORT}{$url}";
+
+		if (!isset($this->_raw[$url])) {
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_URL, $url);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			$data = curl_exec($ch);
+			curl_close($ch);
+
+			$this->_raw[$url] = simplexml_load_string($data);
+		}
+
+		return $this->_raw[$url];
+	}
+
+	public static function detect($ip = '239.255.255.250', $port = 1900) {
+		$sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+		socket_set_option($sock, getprotobyname('ip'), IP_MULTICAST_TTL, 2);
+
+		$data = <<<DATA
+M-SEARCH * HTTP/1.1
+HOST: {$ip}:reservedSSDPport
+MAN: ssdp:discover
+MX: 1
+ST: urn:schemas-upnp-org:device:ZonePlayer:1
+DATA;
+
+		socket_sendto($sock, $data, strlen($data), null, $ip, $port);
+
+		// All passed by ref
+		$read = [$sock];
+		$write = $except = [];
+		$name = $port = null;
+		$tmp = '';
+
+		// Read buffer
+		$buff = '';
+
+		// Loop until there's nothing more to read
+		while (socket_select($read, $write, $except, 1) && $read) {
+			socket_recvfrom($sock, $tmp, 2048, null, $name, $port);
+
+			$buff .= $tmp;
+		}
+
+		// Parse buffer into devices
+		$data = static::_parse_detection_replies($buff);
+
+		// Make an array of myselfs
+		$devices = [];
+
+		foreach ($data as $datum) {
+			$url = parse_url($datum['location']);
+
+			$devices[] = new static($url['host'], $url['port']);
+		}
+
+		return $devices;
+	}
+
+	protected static function _parse_detection_replies($replies) {
+		$out = [];
+
+		// Loop each reply
+		foreach (explode("\r\n\r\n", $replies) as $reply) {
+			if ( ! $reply) {
+				continue;
+			}
+
+			// New array entry
+			$arr =& $out[];
+
+			// Loop each line
+			foreach (explode("\r\n", $reply) as $line) {
+				// End of header name
+				if (($colon = strpos($line, ':')) !== false) {
+					$name = strtolower(substr($line, 0, $colon));
+					$val = trim(substr($line, $colon + 1));
+
+					$arr[$name] = $val;
+				}
+			}
+		}
+
+		return $out;
+	}
+
+	public static function get_room_coordinator($room_name) {
+		// Detect devices. Sometimes takes a few goes.
+		do {
+			$devices = static::detect();
+
+			if (!$devices) {
+				sleep(1);
+			}
+		} while (!$devices);
+
+		foreach ($devices as $device) {
+			if ($device->device_info()['roomName'] == $room_name) {
+				return $device->get_coordinator();
+			}
+		}
+
+		return false;
 	}
 }
