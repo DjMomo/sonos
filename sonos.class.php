@@ -468,6 +468,7 @@ class SonosPHPController
 			$this->SetVolume($volume);
 
 		$file = 'x-file-cifs://'.$directory.'/'.$this->TTSToMp3($message,$lang);
+
 		if (((stripos($actual['track']["TrackURI"],"x-file-cifs://")) != false) or ((stripos($actual['track']["TrackURI"],".mp3")) != false))
 		{
 			// It's a MP3 file
