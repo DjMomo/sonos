@@ -33,15 +33,21 @@ Original Changelog
 	- Say name song	
 	- TTS messages can be greater than 100 car.
 
-==========
-
-Configuration :
+Configuration
+=============
 
 -- None --
 
+How to use
 ==========
-
-How to use :
 
 See sonos.php or sonos.tts.php
 And http://www.planete-domotique.com/blog/2013/06/10/une-classe-php-pour-piloter-ses-sonos-avec-leedomus/
+
+License
+=======
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
