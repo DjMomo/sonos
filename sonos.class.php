@@ -39,7 +39,7 @@
 class SonosPHPController
 {
 	protected $Sonos_IP;
-	protected $_raw = [];
+	protected $_raw = array();
 
 	/**
 	* Constructeur
@@ -556,7 +556,7 @@ class SonosPHPController
 		$topology = $this->_device_info_raw('/status/topology');
 
 		$myself = null;
-		$coordinators = [];
+		$coordinators = array();
 
 		// Loop players, build map of coordinators and find myself
 		foreach ($topology->ZonePlayers->ZonePlayer as $player) {
@@ -610,7 +610,7 @@ DATA;
 
 		// All passed by ref
 		$read = [$sock];
-		$write = $except = [];
+		$write = $except = array();
 		$name = $port = null;
 		$tmp = '';
 
@@ -628,7 +628,7 @@ DATA;
 		$data = static::_parse_detection_replies($buff);
 
 		// Make an array of myselfs
-		$devices = [];
+		$devices = array();
 
 		foreach ($data as $datum) {
 			$url = parse_url($datum['location']);
@@ -640,7 +640,7 @@ DATA;
 	}
 
 	protected static function _parse_detection_replies($replies) {
-		$out = [];
+		$out = array();
 
 		// Loop each reply
 		foreach (explode("\r\n\r\n", $replies) as $reply) {
