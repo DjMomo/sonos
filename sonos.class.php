@@ -562,7 +562,8 @@ class SonosPHPController
 		foreach ($topology->ZonePlayers->ZonePlayer as $player) {
 			$player_data = $player->attributes();
 
-			$ip = parse_url((string)$player_data->location)['host'];
+			$url = parse_url((string)$player_data->location);
+			$ip = $url['host'];
 
 			if ($ip == $this->IP) {
 				$myself = $player_data;
@@ -677,7 +678,8 @@ DATA;
 		} while (!$devices);
 
 		foreach ($devices as $device) {
-			if ($device->device_info()['roomName'] == $room_name) {
+			$dev = $device->device_info();
+			if ($dev['roomName'] == $room_name) {
 				return $device->get_coordinator();
 			}
 		}
