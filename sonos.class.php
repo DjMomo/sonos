@@ -9,22 +9,22 @@
   * - Pause() : pause
   * - Stop() : stop
   * - Next() : next track / titre suivant
-  * - Previous() : previous track / titre pr�c�dent
-  * - SeekTime(string) : seek to time xx:xx:xx / avancer-reculer � la position xx:xx:xx
+  * - Previous() : previous track / titre précédent
+  * - SeekTime(string) : seek to time xx:xx:xx / avancer-reculer à la position xx:xx:xx
   * - ChangeTrack(int) : change to track xx / aller au titre xx
-  * - RestartTrack() : restart actual track / revenir au d�but du titre actuel
-  * - RestartQueue() : restart queue / revenir au d�but de la liste actuelle
-  * - GetVolume() : get volume level / r�cup�rer le niveau sonore actuel
-  * - SetVolume(int) : set volume level / r�gler le niveau sonore
-  * - GetMute() : get mute status / connaitre l'�tat de la sourdine
-  * - SetMute(bool) : active-disable mute / activer-d�sactiver la sourdine
-  * - GetTransportInfo() : get status about player / connaitre l'�tat de la lecture
-  * - GetMediaInfo() : get informations about media / connaitre des informations sur le m�dia
+  * - RestartTrack() : restart actual track / revenir au début du titre actuel
+  * - RestartQueue() : restart queue / revenir au début de la liste actuelle
+  * - GetVolume() : get volume level / récupérer le niveau sonore actuel
+  * - SetVolume(int) : set volume level / régler le niveau sonore
+  * - GetMute() : get mute status / connaitre l'état de la sourdine
+  * - SetMute(bool) : active-disable mute / activer-désactiver la sourdine
+  * - GetTransportInfo() : get status about player / connaitre l'état de la lecture
+  * - GetMediaInfo() : get informations about media / connaitre des informations sur le média
   * - GetPositionInfo() : get some informations about track / connaitre des informations sur le titre
-  * - AddURIToQueue(string,bool) : add a track to queue / ajouter un titre � la liste de lecture
+  * - AddURIToQueue(string,bool) : add a track to queue / ajouter un titre à la liste de lecture
   * - RemoveTrackFromQueue(int) : remove a track from Queue / supprimer un tritre de la liste de lecture
   * - RemoveAllTracksFromQueue() : remove all tracks from queue / vider la liste de lecture
-  * - RefreshShareIndex() : refresh music library / rafraichit la biblioth�que musicale
+  * - RefreshShareIndex() : refresh music library / rafraichit la bibliothèque musicale
   * - SetQueue(string) : load a track or radio in player / charge un titre ou une radio dans le lecteur
   * - PlayTTS(string message,string station,int volume,string lang) : play a text-to-speech message / lit un message texte
   *
@@ -48,7 +48,7 @@ class SonosPHPController
 	*/
 	public function __construct($Sonos_IP,$Sonos_Port = '1400')
 	{
-		// On assigne les param�tres aux variables d'instance.
+		// On assigne les paramètres aux variables d'instance.
 		$this->IP = $Sonos_IP;
 		$this->PORT = $Sonos_Port;
 	}
