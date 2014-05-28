@@ -629,11 +629,16 @@ DATA;
 
 		// Make an array of myselfs
 		$devices = [];
+		$unique = [];
 
 		foreach ($data as $datum) {
+			if(in_array($datum['usn'],$unique)) {
+				continue;
+			}
 			$url = parse_url($datum['location']);
 
 			$devices[] = new static($url['host'], $url['port']);
+			$unique[] = $datum['usn'];
 		}
 
 		return $devices;
