@@ -3,19 +3,6 @@ sonos-PHP-class
 
 A PHP class to control Sonos products
 
-Forked from https://github.com/DjMomo/sonos
-Fork / updates found at https://github.com/phil-lavin/sonos
-
-New features of this fork
-=========================
-
-Code Refactors
---------------
-
-* Replace all private with protected so the class can be reasonably extended
-* Fix the redundant $next param in AddToQueue
-* Tidy up inconsistent whitespace
-
 Methods
 -------
 
@@ -24,19 +11,28 @@ Methods
 * get_coordinator() : Returns an instance of SonosPHPController representing the 'coordinator' of the room this device is in
 * device_info() : Gets some info about this device as an array
 * AddSpotifyToQueue(string spotify_id,bool next) : Adds the provided spotify ID to the queue either next or at the end
-
-Original Changelog
-==================
-
-* 2013-06-08 - V1.0 - Initial version on Github
-* 2013-06-16 - Bugs fixes and new features :
-	- Say name song	
-	- TTS messages can be greater than 100 car.
-
-Configuration
-=============
-
--- None --
+* Play() : play
+* Pause() : pause
+* Stop() : stop
+* Next() : next track
+* Previous() : previous track
+* SeekTime(string) : seek to time xx:xx:xx
+* ChangeTrack(int) : change to track xx
+* RestartTrack() : restart actual track
+* RestartQueue() : restart queue
+* GetVolume() : get volume level
+* SetVolume(int) : set volume level
+* GetMute() : get mute status
+* SetMute(bool) : active-disable mute
+* GetTransportInfo() : get status about player
+* GetMediaInfo() : get informations about media
+* GetPositionInfo() : get some informations about track
+* AddURIToQueue(string,bool) : add a track to queue
+* RemoveTrackFromQueue(int) : remove a track from Queue
+* RemoveAllTracksFromQueue() : remove all tracks from queue
+* RefreshShareIndex() : refresh music library
+* SetQueue(string) : load a track or radio in player
+* PlayTTS(string message,string station,int volume,string lang) : play a text-to-speech message
 
 How to use
 ==========
