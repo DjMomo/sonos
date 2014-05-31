@@ -1,40 +1,4 @@
 <?php
-/**
-  * PHP class to control Sonos
-  * Forked from http://www.github.com/DjMomo/sonos
-  * Forked repo / updates from https://github.com/phil-lavin/sonos
-  *
-  * Available functions :
-  * - Play() : play / lecture
-  * - Pause() : pause
-  * - Stop() : stop
-  * - Next() : next track / titre suivant
-  * - Previous() : previous track / titre précédent
-  * - SeekTime(string) : seek to time xx:xx:xx / avancer-reculer à la position xx:xx:xx
-  * - ChangeTrack(int) : change to track xx / aller au titre xx
-  * - RestartTrack() : restart actual track / revenir au début du titre actuel
-  * - RestartQueue() : restart queue / revenir au début de la liste actuelle
-  * - GetVolume() : get volume level / récupérer le niveau sonore actuel
-  * - SetVolume(int) : set volume level / régler le niveau sonore
-  * - GetMute() : get mute status / connaitre l'état de la sourdine
-  * - SetMute(bool) : active-disable mute / activer-désactiver la sourdine
-  * - GetTransportInfo() : get status about player / connaitre l'état de la lecture
-  * - GetMediaInfo() : get informations about media / connaitre des informations sur le média
-  * - GetPositionInfo() : get some informations about track / connaitre des informations sur le titre
-  * - AddURIToQueue(string,bool) : add a track to queue / ajouter un titre à la liste de lecture
-  * - RemoveTrackFromQueue(int) : remove a track from Queue / supprimer un tritre de la liste de lecture
-  * - RemoveAllTracksFromQueue() : remove all tracks from queue / vider la liste de lecture
-  * - RefreshShareIndex() : refresh music library / rafraichit la bibliothèque musicale
-  * - SetQueue(string) : load a track or radio in player / charge un titre ou une radio dans le lecteur
-  * - PlayTTS(string message,string station,int volume,string lang) : play a text-to-speech message / lit un message texte
-  *
-  * Functions only available in the fork:
-  * - static get_room_coordinator(string room_name) : Returns an instance of SonosPHPController representing the 'coordinator' of the specified room
-  * - static detect(string ip,string port) : IP and port are optional. Returns an array of instances of SonosPHPController, one for each Sonos device found on the network
-  * - get_coordinator() : Returns an instance of SonosPHPController representing the 'coordinator' of the room this device is in
-  * - device_info() : Gets some info about this device as an array
-  * - AddSpotifyToQueue(string spotify_id,bool next) : Adds the provided spotify ID to the queue either next or at the end
-*/
 
 class SonosPHPController
 {
@@ -629,11 +593,16 @@ DATA;
 
 		// Make an array of myselfs
 		$devices = [];
+		$unique = [];
 
 		foreach ($data as $datum) {
+			if(in_array($datum['usn'],$unique)) {
+				continue;
+			}
 			$url = parse_url($datum['location']);
 
 			$devices[] = new static($url['host'], $url['port']);
+			$unique[] = $datum['usn'];
 		}
 
 		return $devices;
