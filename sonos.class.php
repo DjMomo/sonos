@@ -12,7 +12,7 @@ class SonosPHPController
 	*/
 	public function __construct($Sonos_IP,$Sonos_Port = '1400')
 	{
-		// On assigne les paramètres aux variables d'instance.
+		// On assigne les paramï¿½tres aux variables d'instance.
 		$this->IP = $Sonos_IP;
 		$this->PORT = $Sonos_Port;
 	}
@@ -443,8 +443,12 @@ class SonosPHPController
 			$TrackNumber = $this->AddURIToQueue($file);
 			$this->ChangeTrack($TrackNumber);
 			$this->Play();
-			sleep(2);
-			while ($this->GetTransportInfo() == "PLAYING") {}
+			while (true) {
+				@$ttsFile=$this->GetPositionInfo();
+				if($ttsFile["TrackNumberInQueue"]!=$TrackNumber)
+					break;
+				usleep(10000);
+			}
 			$this->Pause();
 			$this->SetVolume($actual['volume']);
 			$this->SetMute($actual['mute']);
