@@ -12,7 +12,7 @@ class SonosPHPController
 	*/
 	public function __construct($Sonos_IP,$Sonos_Port = '1400')
 	{
-		// On assigne les paramètres aux variables d'instance.
+		// On assigne les paramï¿½tres aux variables d'instance.
 		$this->IP = $Sonos_IP;
 		$this->PORT = $Sonos_Port;
 	}
@@ -437,7 +437,7 @@ class SonosPHPController
 
 		$file = 'x-file-cifs://'.$directory.'/'.$this->TTSToMp3($message,$lang);
 
-		if (((stripos($actual['track']["TrackURI"],"x-file-cifs://")) != false) or ((stripos($actual['track']["TrackURI"],".mp3")) != false))
+		if (((stripos($actual['track']["TrackURI"],"x-file-cifs://")) !== false) or ((stripos($actual['track']["TrackURI"],".mp3")) !== false))
 		{
 			// It's a MP3 file
 			$TrackNumber = $this->AddURIToQueue($file);
