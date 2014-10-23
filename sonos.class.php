@@ -443,8 +443,12 @@ class SonosPHPController
 			$TrackNumber = $this->AddURIToQueue($file);
 			$this->ChangeTrack($TrackNumber);
 			$this->Play();
-			sleep(2);
-			while ($this->GetTransportInfo() == "PLAYING") {}
+			while (true) {
+				@$ttsFile=$this->GetPositionInfo();
+				if($ttsFile["TrackNumberInQueue"]!=$TrackNumber)
+					break;
+				usleep(10000);
+			}
 			$this->Pause();
 			$this->SetVolume($actual['volume']);
 			$this->SetMute($actual['mute']);
