@@ -333,6 +333,31 @@ class SonosPHPController
 		return $this->Upnp($url,$service,$action,$args);
 	}
 
+	/******************************************************************************
+	* Get Transport Settings : get PlayMode about player
+	******************************************************************************/
+	public function GetPlayMode()	{
+		
+		$url = '/MediaRenderer/AVTransport/Control';
+		$action = 'GetTransportSettings';
+		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
+		$args = '<InstanceID>0</InstanceID>';
+		$filter = 'PlayMode';
+		return $this->Upnp($url,$service,$action,$args,$filter);
+	}
+
+	/******************************************************************************
+	* Set Transport Settings : set PlayMode about player
+	******************************************************************************/
+	public function SetPlayMode($playmode="NORMAL")	{
+		
+		$url = '/MediaRenderer/AVTransport/Control';
+		$action = 'SetPlayMode';
+		$service = 'urn:schemas-upnp-org:service:AVTransport:1';
+		$args = '<InstanceID>0</InstanceID><NewPlayMode>'.$playmode.'</NewPlayMode>';
+		return $this->Upnp($url,$service,$action,$args);
+	}
+	
 	/**
 	* Split string in several strings
 	*
