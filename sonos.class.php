@@ -330,6 +330,7 @@ class SonosPHPController
 		$url = '/MediaServer/ContentDirectory/Control';
 		$action = 'RefreshShareIndex';
 		$service = 'urn:schemas-upnp-org:service:ContentDirectory:1';
+		$args = '<AlbumArtistDisplayOption/>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
 
