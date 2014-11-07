@@ -1,0 +1,123 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Command Line Constroller for Sonos
+ */
+require("sonos.class.php");
+
+if (!isset($argv[1])) {
+    echo "USE: " . $argv[0] . " <device> <command> <parameter>\n";
+    echo $argv[0] . " <device> help for use.\n";
+    exit;
+}
+
+$sonos = new SonosController($argv[1]);
+/*
+ * TODO:
+ * - SeekTime(string) : seek to time xx:xx:xx / avancer-reculer à la position xx:xx:xx
+ * - ChangeTrack(int) : change to track xx / aller au titre xx
+ * - GetTransportInfo() : get status about player / connaitre l'état de la lecture
+ * - GetMediaInfo() : get informations about media / connaitre des informations sur le média
+ * - GetPositionInfo() : get some informations about track / connaitre des informations sur le titre
+ * - AddURIToQueue(string,bool) : add a track to queue / ajouter un titre à la liste de lecture
+ * - RemoveTrackFromQueue(int) : remove a track from Queue / supprimer un tritre de la liste de lecture
+ * - RemoveAllTracksFromQueue() : remove all tracks from queue / vider la liste de lecture
+ * - RefreshShareIndex() : refresh music library / rafraichit la bibliothèque musicale
+ * - SetQueue(string) : load a track or radio in player / charge un titre ou une radio dans le lecteur
+ * - PlayTTS(string message,string station,int volume,string lang) : play a text-to-speech message / lit un message texte
+**/
+switch ($argv[2]) {
+    case 'play':
+        $sonos->Play();
+        break;
+    case 'pause':
+        $sonos->Pause();
+        break;
+    case 'stop':
+        $sonos->Stop();
+        break;
+    case 'next':
+        $sonos->Next();
+        break;
+    case 'previous':
+        $sonos->Previous();
+        break;
+    case 'restart':
+        switch ($argv[3]) { //Which 'restart' parameter:
+            case 'track':
+                $sonos->RestartTrack();
+                exit;
+            case 'queue':
+                $sonos->RestartQueue();
+                exit;
+            default:
+                echo "Requires 'track' or 'queue' parameter.\n";
+                exit;
+        }        
+        break;
+    case 'get':
+        switch ($argv[3]) { //Which 'get' parameter:
+            case 'volume':
+                echo "Volume is: " . $sonos->GetVolume() . "\n";
+                exit;
+            case 'mute':
+                echo $sonos->GetMute() ? "System is muted\n" : "System is not muted\n";
+                exit;
+            case 'media':
+                echo "Media is: " . $sonos->GetMediaInfo() . "\n";
+                exit;
+            default:
+                echo "Incorrect get parameter.\n";
+                exit;
+        }
+    case 'set':
+        switch ($argv[3]) { //Which 'get' parameter:
+            case 'volume':
+                if (!isset($argv[4])) {exit("No volume level specified.\n");}
+                $sonos->SetVolume($argv[4]);
+                echo "Volume is now: " .  $sonos->GetVolume(). "\n";
+                exit;
+            case 'mute':
+                $sonos->SetMute($argv[4]=='on');
+                echo $sonos->GetMute() ? "System is now muted\n" : "System is now unmuted\n";
+                exit;
+            default:
+                echo "Incorrect set parameter.\n";
+                exit;
+        }
+    case 'queue':
+        switch ($argv[3]) { //Which 'get' parameter:
+            case 'add':
+                $file = 'x-file-cifs:' . $sonos->getSharedTTSDir() . '/' . $argv[4];
+                $sonos->AddURIToQueue($file, isset($argv[5]) ? 1 : 0);
+                echo "File added: " . $argv[4]. "\n";
+                exit;
+            case 'reset':
+                $sonos->RemoveAllTracksFromQueue();
+                echo "Queue has been reset\n";
+                exit;
+            default:
+                echo "Incorrect queue parameter.\n";
+                exit;
+        }
+        
+    case 'tts':
+        $message = $argv[3];
+        $language = isset($argv[4]) ? $argv[4] : false;
+        $sonos->PlayTTS($message, $language);
+        break;
+    default:
+        echo "Commands:\n";
+        echo " play\n";
+        echo " pause";
+        echo " stop\n";
+        echo " next\n";
+        echo " previous\n";
+        echo " get volume\n";
+        echo " get mute\n";
+        echo " get media\n";
+        echo " set volume\n";
+        echo " set mute on\n";
+        echo " tts message\n";
+        break;
+}

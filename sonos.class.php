@@ -330,6 +330,22 @@ class SonosPHPController
 		$url = '/MediaServer/ContentDirectory/Control';
 		$action = 'RefreshShareIndex';
 		$service = 'urn:schemas-upnp-org:service:ContentDirectory:1';
+		$args = '<AlbumArtistDisplayOption/>';
+		return $this->Upnp($url,$service,$action,$args);
+	}
+	
+	/**
+	* Add music library (Samba share)
+	*
+	*/
+	public function AddMusicLibrary($libraryLocation)
+	{
+		$url = '/MediaServer/ContentDirectory/Control';
+		$action = 'CreateObject';
+		$service = 'urn:schemas-upnp-org:service:ContentDirectory:1';
+		$meta = '<DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"><container id="" restricted="false"><dc:title>'.$libraryLocation.'</dc:title><r:usernameX/><r:passwordX/></container></DIDL-Lite>';
+		$meta = htmlentities($meta);
+		$args = '<ContainerID>S:</ContainerID><Elements>'.$meta.'</Elements>';
 		return $this->Upnp($url,$service,$action,$args);
 	}
 
