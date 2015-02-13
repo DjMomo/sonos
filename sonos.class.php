@@ -12,7 +12,7 @@ class SonosPHPController
 	*/
 	public function __construct($Sonos_IP,$Sonos_Port = '1400')
 	{
-		// On assigne les param�tres aux variables d'instance.
+		// On assigne les paramètres aux variables d'instance.
 		$this->IP = $Sonos_IP;
 		$this->PORT = $Sonos_Port;
 	}
@@ -681,5 +681,13 @@ DATA;
 		}
 
 		return false;
+	}
+	
+	/**
+	* Set Alarm
+	* @param string URI of new track
+	*/
+	public static function SetAlarm() {
+		
 	}
 }
