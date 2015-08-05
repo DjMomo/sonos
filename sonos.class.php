@@ -377,11 +377,71 @@ class SonosPHPController
 		return $strings;
 	}
 
+
+	
+	
+	/**
+	* Download TTS file from Google
+	*
+	*/
+	protected function GetTtsFileFromGoogle($file,$words,$lang)
+	{
+		// Google Translate API cannot handle strings > 100 characters
+		$words = $this->CutString($words,100);
+
+		ini_set('user_agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
+		$mp3 = "";
+		for ($i = 0; $i < count($words); $i++)
+			$mp3[$i] = file_get_contents('http://translate.google.com/translate_tts?q='.$words[$i].'&tl='.$lang.'&client=Sonos');
+
+		file_put_contents($file, $mp3);
+		
+		return $file;
+	}
+	
+	
+	/**
+	* Download TTS file from Acapala 
+	* Initial code from https://github.com/skmp/acapela-tts-zeroconf-proxy
+	*/
+	protected function GetTtsFileFromAcapela($file,$words,$lang)
+	{	
+		// Acapela demo TTS API cannot handle strings > 300 characters
+		$words = substr($words, 0, 300);
+		
+		$url = 'http://www.acapela-group.com/demo-tts/DemoHTML5Form_V2.php';
+		$data = 
+			array(
+			'MyLanguages' => 'sonid15',
+			'MySelectedVoice' => 'Manon',
+			'MyTextForTTS' => urldecode($words),
+			'SendToVaaS' =>'');
+			// use key 'http' even if you send the request to https://...
+			$options = array(
+			    'http' => array(
+			        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+			        'method'  => 'POST',
+			        'content' => http_build_query($data),
+			    ),
+			);
+		$context  = stream_context_create($options);
+		$result = file_get_contents($url, false, $context);
+		$hookp = "var myPhpVar = '";
+		$temp = substr(strstr($result,$hookp),strlen($hookp));
+		$rv = substr($temp,0,strpos($temp,"'"));
+		
+		file_put_contents($file, file_get_contents($rv));
+		
+		return $file;
+	}
+	
+	
+	
 	/**
 	* Convert Words (text) to Speech (MP3)
 	*
 	*/
-	protected function TTSToMp3($words,$lang)
+	protected function TTSToMp3($words,$lang,$ttsengine)
 	{
 		// Directory
 		$folder = "audio/".$lang;
@@ -402,16 +462,14 @@ class SonosPHPController
 
 		// If the MP3 file exists, do not create a new request
 		if (!file_exists($file))
-		{
-			// Google Translate API cannot handle strings > 100 characters
-			$words = $this->CutString($words,100);
+		{	
+			if($ttsengine == 'google'){
+				$file = $this->GetTtsFileFromGoogle($file,$words,$lang);
+			}
+			elseif($ttsengine == 'acapela'){
+				$file = $this->GetTtsFileFromAcapela($file,$words,$lang);
+			}
 
-			ini_set('user_agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
-			$mp3 = "";
-			for ($i = 0; $i < count($words); $i++)
-				$mp3[$i] = file_get_contents('http://translate.google.com/translate_tts?q='.$words[$i].'&tl='.$lang.'&client=Sonos');
-
-			file_put_contents($file, $mp3);
 		}
 		return $file;
 	}
@@ -447,7 +505,7 @@ class SonosPHPController
 	* @param int volume
 	* @param string language
 	*/
-	public function PlayTTS($message,$directory,$volume=0,$unmute=0,$lang='fr')
+	public function PlayTTS($message,$directory,$volume=0,$unmute=0,$lang='fr',$ttsengine='google')
 	{
 		$actual['track'] = $this->GetPositionInfo();
 		$actual['volume'] = $this->GetVolume();
@@ -460,7 +518,7 @@ class SonosPHPController
 		if ($volume != 0)
 			$this->SetVolume($volume);
 
-		$file = 'x-file-cifs://'.$directory.'/'.$this->TTSToMp3($message,$lang);
+		$file = 'x-file-cifs://'.$directory.'/'.$this->TTSToMp3($message,$lang,$ttsengine);
 
 		if (((stripos($actual['track']["TrackURI"],"x-file-cifs://")) !== false) or ((stripos($actual['track']["TrackURI"],".mp3")) !== false))
 		{
