@@ -405,35 +405,50 @@ class SonosPHPController
 	* Initial code from https://github.com/skmp/acapela-tts-zeroconf-proxy
 	*/
 	protected function GetTtsFileFromAcapela($file,$words,$lang)
-	{	
-		// Acapela demo TTS API cannot handle strings > 300 characters
-		$words = substr($words, 0, 300);
-		
-		$url = 'http://www.acapela-group.com/demo-tts/DemoHTML5Form_V2.php';
-		$data = 
-			array(
-			'MyLanguages' => 'sonid15',
-			'MySelectedVoice' => 'Manon',
-			'MyTextForTTS' => urldecode($words),
-			'SendToVaaS' =>'');
-			// use key 'http' even if you send the request to https://...
-			$options = array(
-			    'http' => array(
-			        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-			        'method'  => 'POST',
-			        'content' => http_build_query($data),
-			    ),
-			);
-		$context  = stream_context_create($options);
-		$result = file_get_contents($url, false, $context);
-		$hookp = "var myPhpVar = '";
-		$temp = substr(strstr($result,$hookp),strlen($hookp));
-		$rv = substr($temp,0,strpos($temp,"'"));
-		
-		file_put_contents($file, file_get_contents($rv));
-		
-		return $file;
-	}
+        {
+                // Acapela demo TTS API cannot handle strings > 300 characters
+                $words = substr($words, 0, 300);
+
+                // Get PHP Session from cookies
+                $ch = curl_init('http://www.acapela-group.com/?lang=fr');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($ch, CURLOPT_HEADER, 1);
+                $result = curl_exec($ch);
+                preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $result, $matches);
+                $cookies = array();
+                foreach($matches[1] as $item) {
+                    parse_str($item, $cookie);
+                    $cookies = array_merge($cookies, $cookie);
+                }               
+                //var_dump($cookies);
+                //echo $cookies['PHPSESSID'];
+                
+                // Get sound
+                $url = 'http://www.acapela-group.com/demo-tts/DemoHTML5Form_V2.php';
+                $data =
+                        array(
+                        'MySelectedVoice' => 'Manon',
+                        'MyTextForTTS' => urldecode($words),
+                        'agreeterms' => 'on',
+                        'SendToVaaS' =>'');
+                        // use key 'http' even if you send the request to https://...
+                        $options = array(
+                            'http' => array(
+                                'header'  => "Cookie: PHPSESSID=".$cookies['PHPSESSID']."\r\n",
+                                'method'  => 'POST',
+                                'content' => http_build_query($data),
+                            ),
+                        );
+                $context  = stream_context_create($options);
+                $result = file_get_contents($url, false, $context);
+                $hookp = "var myPhpVar = '";
+                $temp = substr(strstr($result,$hookp),strlen($hookp));
+                $rv = substr($temp,0,strpos($temp,"'"));
+
+                file_put_contents($file, file_get_contents($rv));
+
+                return $file;
+        }
 	
 	
 	
